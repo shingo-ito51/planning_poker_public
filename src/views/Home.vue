@@ -1,0 +1,166 @@
+<template>
+  <div class="home">
+    <br />
+    <v-container>
+      <v-row>
+        <v-col>
+          <v-text-field
+            label="Room Name"
+            :rules="rules"
+            hide-details="auto"
+            v-model="createRoomName"
+          />
+        </v-col>
+        <v-col>
+          <v-btn elevation="10" x-large @click="createRoom">
+            {{ "Create Room" }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+    <br />
+    <v-divider></v-divider>
+    <br />
+    <v-container>
+      <v-row>
+        <v-col>
+          <v-text-field
+            label="Room ID"
+            :rules="rules"
+            hide-details="auto"
+            v-model="joinRoomId"
+          />
+        </v-col>
+        <v-col>
+          <v-btn elevation="10" x-large @click="joinRoom">
+            {{ "Join Room" }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+    <br />
+    <v-divider></v-divider>
+    <!-- <br />
+    <v-btn elevation="10" x-large @click="testLink">
+      {{ "test" }}
+    </v-btn> -->
+  </div>
+</template>
+
+<script>
+import { getDatabase, ref, set, onValue } from "firebase/database";
+
+export default {
+  name: "Home",
+
+  data: () => {
+    return {
+      createRoomName: "",
+      joinRoomId: "",
+      rules: [
+        (value) => !!value || "Required.",
+        (value) => (value && value.length >= 3) || "type 3 characters",
+      ],
+      db: null,
+      rooms: null,
+      buttunEnable: true,
+    };
+  },
+
+  created() {
+    this.db = getDatabase();
+    this.rooms = [];
+    onValue(ref(this.db, "rooms"), (result) => {
+      if (result.val()) {
+        let val = result.val();
+        if (val.length) {
+          this.rooms = val;
+        }
+      }
+    });
+  },
+
+  methods: {
+    createRoom() {
+      if (!this.buttunEnable) {
+        return false;
+      }
+      if (!this.createRoomName) {
+        window.alert("Please input Room Name.");
+        return false;
+      }
+      console.log("TODO: Create Roooms");
+      // Room ID発行
+      let roomId = "";
+      // Room IDの検証
+      do {
+        roomId = this.createRoomId();
+      } while (this.rooms.includes(roomId));
+      // Room ID登録
+      this.rooms.push(roomId);
+      set(ref(this.db, "/rooms"), this.rooms);
+      // Roomの基本データ作成
+      let pokerRoom = {
+        name: this.createRoomName,
+        selectedPoints: [],
+        host: this.$store.getters.uniqKey,
+        opened: false,
+      };
+      set(ref(this.db, `pokers/${roomId}`), pokerRoom);
+
+      // Room 画面へ遷移
+      this.buttunEnable = false;
+      this.$router.push("/poker/" + roomId);
+    },
+
+    joinRoom() {
+      if (!this.buttunEnable) {
+        return false;
+      }
+      if (!this.joinRoomId) {
+        window.alert("Please input room id.");
+        return false;
+      }
+      // TODO: RoomId check
+      console.log("Room ID: %s", this.joinRoomId);
+      let roomIds = this.rooms.map((item) => {
+        return item.id;
+      });
+      if (!roomIds.includes(this.joinRoomId)) {
+        window.alert("Not Found.");
+        return false;
+      }
+
+      this.buttunEnable = false;
+      this.$router.push("/poker/" + this.joinRoomId);
+    },
+
+    createRoomId() {
+      let S = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let N = 8;
+      return Array.from(crypto.getRandomValues(new Uint8Array(N)))
+        .map((n) => S[n % S.length])
+        .join("");
+    },
+
+    testLink() {
+      let roomId = "foobar";
+      if (!this.rooms.includes(roomId)) {
+        // Room ID登録
+        this.rooms.push(roomId);
+        set(ref(this.db, "/rooms"), this.rooms);
+      }
+
+      // Roomの基本データ作成
+      let pokerRoom = {
+        name: "Test Room",
+        selectedPoints: [],
+        host: this.$store.getters.uniqKey,
+        opened: false,
+      };
+      set(ref(this.db, `pokers/${roomId}`), pokerRoom);
+      this.$router.push("/poker/" + roomId);
+    },
+  },
+};
+</script>
