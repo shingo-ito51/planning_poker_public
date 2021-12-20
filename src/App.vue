@@ -1,7 +1,7 @@
 <template>
   <v-app id="inspire">
     <v-app-bar app>
-      <v-toolbar-title>Planning Poker</v-toolbar-title>
+      <v-toolbar-title @click="toHome"> Planning Poker </v-toolbar-title>
     </v-app-bar>
     <v-main>
       <router-view />
@@ -53,11 +53,16 @@ export default {
       return (this.$store.getters.userHash || "").length > 0;
     },
     createUserHash() {
-      console.log("create hash");
       this.$store.dispatch("createUserHash");
       const hash = this.$store.getters.userHash;
-      console.log("send hash: %s", hash);
       set(push(ref(this.db, "/users")), hash);
+    },
+
+    toHome() {
+      if (this.$route.name !== "Home") {
+        this.$router.push("/");
+      }
+      return;
     },
   },
 };

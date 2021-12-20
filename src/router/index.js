@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
+import Poker from "../views/Poker.vue";
 
 Vue.use(VueRouter);
 
@@ -13,7 +14,13 @@ const routes = [
   {
     path: "/poker/:id",
     name: "Poker",
-    component: () => import("../views/Poker.vue"),
+    component: Poker,
+  },
+  {
+    path: "*",
+    beforeEnter(to, from, next) {
+      next("/");
+    },
   },
 ];
 

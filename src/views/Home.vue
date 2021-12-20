@@ -19,8 +19,6 @@
       </v-row>
     </v-container>
     <br />
-    <v-divider></v-divider>
-    <br />
     <v-container>
       <v-row>
         <v-col>
@@ -40,10 +38,6 @@
     </v-container>
     <br />
     <v-divider></v-divider>
-    <!-- <br />
-    <v-btn elevation="10" x-large @click="testLink">
-      {{ "test" }}
-    </v-btn> -->
   </div>
 </template>
 
@@ -89,7 +83,7 @@ export default {
         window.alert("Please input Room Name.");
         return false;
       }
-      console.log("TODO: Create Roooms");
+
       // Room ID発行
       let roomId = "";
       // Room IDの検証
@@ -113,28 +107,6 @@ export default {
       this.$router.push("/poker/" + roomId);
     },
 
-    joinRoom() {
-      if (!this.buttunEnable) {
-        return false;
-      }
-      if (!this.joinRoomId) {
-        window.alert("Please input room id.");
-        return false;
-      }
-      // TODO: RoomId check
-      console.log("Room ID: %s", this.joinRoomId);
-      let roomIds = this.rooms.map((item) => {
-        return item.id;
-      });
-      if (!roomIds.includes(this.joinRoomId)) {
-        window.alert("Not Found.");
-        return false;
-      }
-
-      this.buttunEnable = false;
-      this.$router.push("/poker/" + this.joinRoomId);
-    },
-
     createRoomId() {
       let S = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       let N = 8;
@@ -143,23 +115,21 @@ export default {
         .join("");
     },
 
-    testLink() {
-      let roomId = "foobar";
-      if (!this.rooms.includes(roomId)) {
-        // Room ID登録
-        this.rooms.push(roomId);
-        set(ref(this.db, "/rooms"), this.rooms);
+    joinRoom() {
+      if (!this.buttunEnable) {
+        return false;
+      }
+      if (!this.joinRoomId) {
+        window.alert("Please input room id.");
+        return false;
+      }
+      if (!this.rooms.includes(this.joinRoomId)) {
+        window.alert("Not Found.");
+        return false;
       }
 
-      // Roomの基本データ作成
-      let pokerRoom = {
-        name: "Test Room",
-        selectedPoints: [],
-        host: this.$store.getters.uniqKey,
-        opened: false,
-      };
-      set(ref(this.db, `pokers/${roomId}`), pokerRoom);
-      this.$router.push("/poker/" + roomId);
+      this.buttunEnable = false;
+      this.$router.push("/poker/" + this.joinRoomId);
     },
   },
 };

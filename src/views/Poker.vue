@@ -109,14 +109,22 @@ export default {
     return {
       roomName: "",
       selectedValue: null,
-      selectedPoints: { hoge: 1 },
+      selectedPoints: {},
       members: [],
       db: null,
       cards: [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89],
       dbKey: "",
+      myPointKey: "",
       host: "",
       opened: false,
     };
+  },
+  beforeRouteEnter(to, from, next) {
+    if (!to.params.id) {
+      next("/");
+      return;
+    }
+    next();
   },
   watch: {
     opened(n) {
@@ -134,7 +142,6 @@ export default {
     },
 
     avg() {
-      console.log(Object.keys(this.selectedPoints));
       const cnt = Object.keys(this.selectedPoints).length;
       if (cnt <= 0) {
         return 0;
@@ -144,20 +151,19 @@ export default {
         sum += this.selectedPoints[key];
       });
       let ret = Number(sum / cnt).toFixed(6);
-      console.log(`${sum} / ${cnt} = ${ret}`);
       return ret;
     },
   },
   mounted() {
     this.db = getDatabase();
     this.dbKey = `pokers/${this.$route.params.id}`;
+    this.myPointKey = `${this.dbKey}/selectedPoints/${this.$store.getters.uniqKey}`;
     const refDb = ref(this.db, this.dbKey);
     onValue(
       refDb,
       (result) => {
         if (result.val()) {
           let val = result.val();
-          console.log(val);
           this.members = Object.assign({}, val.members);
           this.selectedPoints = Object.assign({}, val.selectedPoints);
           this.host = val.host;
@@ -194,7 +200,7 @@ export default {
       this.selectedPoints = Object.assign({}, this.selectedPoints, {
         [this.$store.getters.uniqKey]: val,
       });
-      set(ref(this.db, this.dbKey + "/selectedPoints"), this.selectedPoints);
+      set(ref(this.db, this.myPointKey), val);
     },
 
     openCard() {
@@ -216,11 +222,10 @@ export default {
     },
 
     clipUrl() {
-      console.log(window.location.href);
       navigator.clipboard
         .writeText(window.location.href)
         .then(() => {
-          window.alert("copied!");
+          window.alert("URL copied!\n\nPlease share URL.");
         })
         .catch((e) => {
           window.alert(e);
